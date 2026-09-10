@@ -48,6 +48,7 @@ const VelornWorkflowEqualizer: React.FC = () => {
     runId: preview?.runId,
   };
   const settingsKey = JSON.stringify({ ...input, runId: undefined });
+  const displayedValues = previewKey === settingsKey && preview?.input?.values ? preview.input.values : input.values;
   const update = (next: Partial<Settings>) => {
     setPast((p) => [...p.slice(-39), settings]);
     setFuture([]);
@@ -256,19 +257,19 @@ const VelornWorkflowEqualizer: React.FC = () => {
                       min={c.min}
                       max={c.max}
                       step={c.step}
-                      value={input.values[c.controlId]}
+                      value={displayedValues[c.controlId]}
                       disabled={busy || !!unresolved || settings.lockedControls.includes(c.controlId)}
-                      onChange={(v) => update({ values: { ...input.values, [c.controlId]: Number(v) }, intent: '' })}
+                      onChange={(v) => update({ values: { ...displayedValues, [c.controlId]: Number(v) }, intent: '' })}
                     />
                     <InputNumber
                       aria-label={c.label}
                       min={c.min}
                       max={c.max}
                       step={c.step}
-                      value={input.values[c.controlId]}
+                      value={displayedValues[c.controlId]}
                       disabled={busy || !!unresolved || settings.lockedControls.includes(c.controlId)}
                       onChange={(v) => {
-                        if (v !== undefined) update({ values: { ...input.values, [c.controlId]: v }, intent: '' });
+                        if (v !== undefined) update({ values: { ...displayedValues, [c.controlId]: v }, intent: '' });
                       }}
                       suffix={c.unit}
                     />
