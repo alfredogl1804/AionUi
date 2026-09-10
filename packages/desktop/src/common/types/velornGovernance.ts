@@ -41,6 +41,7 @@ export type VelornContext = {
   timelineId: string;
   digest: string;
   markerCount: number;
+  contentSnapshot?: Record<string, unknown>;
 };
 export type VelornGovernanceStatus = {
   available: boolean;
@@ -105,6 +106,7 @@ export type VelornOperationState = {
   executionReceipt?: VelornGrantReceipt;
   reversalReceipt?: VelornGrantReceipt;
   after?: VelornContext;
+  restoredContext?: VelornContext;
   observedAt: string;
   error?: string;
 };

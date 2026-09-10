@@ -206,6 +206,23 @@ describe('native calibration / guarded execution', () => {
     await expect(service.revert()).rejects.toThrow('VELORN_REVERSAL_STALE');
     expect(calls).toEqual(['checkpoint', 'apply']);
   });
+  it('never repeats a confirmed undo while reconciling a stale read or mismatch', async () => {
+    const p = await service.preview(input);
+    await service.execute({ ...input, runId: p.runId });
+    await service.revert();
+    const saved = JSON.parse(await readFile(path, 'utf8'));
+    saved.phase = 'PARTIAL';
+    await writeFile(path, JSON.stringify(saved));
+    markers = 7; // A later edit cannot be silently undone by reconciliation.
+    const partial = await service.revert();
+    expect(partial.phase).toBe('PARTIAL');
+    expect(partial.restoredContext?.markerCount).toBe(7);
+    expect(partial.reversalReceipt?.ledger_entry_id).toBe('pdl-undo');
+    expect(calls).toEqual(['checkpoint', 'apply', 'undo']);
+    markers = 0;
+    expect((await service.revert()).phase).toBe('REVERTED');
+    expect(calls).toEqual(['checkpoint', 'apply', 'undo']);
+  });
   it('blocks concurrent mutations and recognizes nested MCP failure', async () => {
     const p = service.preview(input);
     await expect(service.preview(input)).rejects.toThrow('VELORN_OPERATION_BUSY');

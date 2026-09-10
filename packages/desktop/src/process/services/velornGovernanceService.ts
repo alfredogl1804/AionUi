@@ -94,12 +94,14 @@ export function contextOf(project: Record<string, unknown>, timeline: Record<str
           )
         : v;
   if (!p.path || !timeline.id || timeline.clipLimitApplied) throw new Error('VELORN_CONTEXT_INCOMPLETE');
+  const contentSnapshot = { path: p.path, timeline: omitTimes(stableTimeline) };
   return {
     projectPath: String(p.path),
     projectName: String(p.name),
     timelineId: String(timeline.id),
     revision: String(timeline.modified ?? ''),
-    digest: digest({ path: p.path, timeline: omitTimes(stableTimeline) }),
+    digest: digest(contentSnapshot),
+    contentSnapshot,
     markerCount: Number(timeline.markerCount ?? 0),
   };
 }
@@ -407,6 +409,20 @@ export class VelornGovernanceService {
         !['AUTHORIZED', 'PARTIAL'].includes(previous.phase)
       )
         throw new Error('VELORN_REVERSAL_NOT_AVAILABLE');
+      // A confirmed undo must never be sent again, even if its projection was
+      // delayed or a postcondition failed. Only reconcile the observed state.
+      if (previous.reversalReceipt) {
+        const restoredContext = await this.context();
+        const restored = restoredContext.digest === previous.prepared.context.digest;
+        const state: VelornOperationState = {
+          ...previous,
+          restoredContext,
+          phase: restored ? 'REVERTED' : 'PARTIAL',
+          error: restored ? undefined : 'VELORN_REVERSAL_POSTCONDITION_FAILED',
+        };
+        await this.writeState(state);
+        return state;
+      }
       if ((await this.context()).digest !== previous.after.digest) throw new Error('VELORN_REVERSAL_STALE');
       let state = previous;
       try {
@@ -421,6 +437,8 @@ export class VelornGovernanceService {
         state = { ...state, reversalReceipt };
         await this.writeState(state);
         const restored = await this.context();
+        state = { ...state, restoredContext: restored };
+        await this.writeState(state);
         if (restored.digest !== previous.prepared.context.digest)
           throw new Error('VELORN_REVERSAL_POSTCONDITION_FAILED');
         state = { ...state, phase: 'REVERTED', error: undefined };
