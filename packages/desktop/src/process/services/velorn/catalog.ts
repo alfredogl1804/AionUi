@@ -18,6 +18,7 @@ export const rows = (v: unknown): Record<string, unknown>[] => (Array.isArray(v)
 // technical (not claimed to be learned/champion semantic mappings).
 const technical = (kind: 'marker' | 'style', controls: VelornControl[]): VelornCalibrationProfileSummary => {
   const id = `local-${kind}`;
+  const wireId = (id: string) => id.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
   return {
     profileId: id,
     label: kind === 'marker' ? 'Marcador reversible' : 'Encuadre de un clip',
@@ -36,11 +37,11 @@ const technical = (kind: 'marker' | 'style', controls: VelornControl[]): VelornC
       specialist_id: 'velorn',
       workflow_id: id,
       workflow_version: 'mcp-live-v1',
-      preset: Object.fromEntries(controls.map((c) => [c.controlId, c.value])),
+      preset: Object.fromEntries(controls.map((c) => [wireId(c.controlId), c.value])),
       controls: controls.map((c) => ({
-        control_id: c.controlId,
+        control_id: wireId(c.controlId),
         label: c.label,
-        axis: c.controlId,
+        axis: wireId(c.controlId),
         target_path: c.target,
         semantic_min: c.min - c.value,
         semantic_max: c.max - c.value,

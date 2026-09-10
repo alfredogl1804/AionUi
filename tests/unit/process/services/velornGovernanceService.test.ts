@@ -148,6 +148,14 @@ describe('native calibration / guarded execution', () => {
       'VELORN_CALIBRATION_RANGE'
     );
   });
+  it('publishes canonical lowercase control ids and matching preset keys', () => {
+    for (const profile of catalog({}, tools).profiles) {
+      for (const control of profile.bridgeProfile.controls as Array<{ control_id: string }>) {
+        expect(control.control_id).toMatch(/^[a-z][a-z0-9_.-]*$/);
+        expect(profile.bridgeProfile.preset).toHaveProperty(control.control_id);
+      }
+    }
+  });
   it('uses the specialist mapping rather than recalculating its nonlinear curve', async () => {
     const p = (await service.status()).profiles.find((p) => p.kind === 'native')!;
     const preview = await service.preview({ profileId: p.profileId, values: {} });
