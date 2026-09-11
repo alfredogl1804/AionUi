@@ -61,6 +61,20 @@ const VelornWorkflowEqualizer: React.FC = () => {
       const next = await ipcBridge.velornGovernance.getStatus.invoke();
       setStatus(next);
       setOperation(next.restored);
+      const saved = next.restored?.prepared?.input;
+      if (saved) {
+        setSettings({
+          profileId: saved.profileId,
+          values: saved.values,
+          lockedControls: saved.lockedControls ?? [],
+          intent: saved.intent ?? '',
+          clipId: saved.clipId,
+        });
+        setWorkflow(next.profiles.find((p) => p.profileId === saved.profileId)?.workflowId ?? saved.profileId);
+        // Recover the visible calibration, never silently re-arm an old preview.
+        setPreview(undefined);
+        setPreviewKey('');
+      }
       setError(next.error);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'VELORN_UNAVAILABLE');

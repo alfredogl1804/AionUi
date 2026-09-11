@@ -114,6 +114,25 @@ describe('VelornWorkflowEqualizer', () => {
     expect(authorize).toBeEnabled();
   });
 
+  it('restores saved controls after restart without rearming authorization', async () => {
+    const status = await getStatus();
+    getStatus.mockClear();
+    getStatus.mockResolvedValue({
+      ...status,
+      restored: {
+        runId: 'saved-preview',
+        phase: 'GRANT_REQUIRED',
+        patch,
+        prepared: { input: { profileId: 'local-style', values: { rotation: 7 }, intent: '', lockedControls: [] } },
+      },
+    });
+    render(<VelornWorkflowEqualizer />);
+    await screen.findByText('GRANT_REQUIRED');
+    expect(screen.getByRole('spinbutton', { name: 'Rotation' })).toHaveValue('7');
+    expect(screen.getByRole('button', { name: 'guid.velorn.authorize' })).toBeDisabled();
+    expect(execute).not.toHaveBeenCalled();
+  });
+
   it('invalidates authorization when controls change after preview', async () => {
     render(<VelornWorkflowEqualizer />);
     await waitFor(() => expect(getStatus).toHaveBeenCalledTimes(1));
