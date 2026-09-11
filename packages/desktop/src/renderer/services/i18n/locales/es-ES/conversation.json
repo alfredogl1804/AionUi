@@ -783,5 +783,19 @@
     "progress": "{{completed}}/{{total}}",
     "expand": "Expandir plan",
     "collapse": "Contraer plan"
+  },
+  "continuity": {
+    "title": "Continuidad de tarea",
+    "bound": "Vinculada",
+    "native": "Sesión nativa",
+    "results": "{{count}} respuestas guardadas",
+    "scope": "Recuperación previa al envío humano. Teams conserva la ejecución. Un ACK no prueba comprensión.",
+    "partial": "Contexto parcial — omisiones",
+    "direction": "Objetivo / nueva dirección vigente",
+    "source": "Retomar una tarea guardada",
+    "resume": "Retomar",
+    "enable": "Activar continuidad",
+    "supersede": "Sustituir dirección vigente",
+    "recover": "Recuperar resultados"
   }
 }

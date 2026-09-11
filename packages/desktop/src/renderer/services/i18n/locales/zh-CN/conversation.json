@@ -782,5 +782,19 @@
     "progress": "{{completed}}/{{total}}",
     "expand": "展开计划",
     "collapse": "收起计划"
+  },
+  "continuity": {
+    "title": "任务连续性",
+    "bound": "已绑定",
+    "native": "原生会话",
+    "results": "已保存 {{count}} 条回复",
+    "scope": "在用户发送前恢复。执行仍由 Teams 管理。ACK 不代表理解。",
+    "partial": "部分上下文 — 缺失",
+    "direction": "目标 / 新的有效指令",
+    "source": "恢复已保存任务",
+    "resume": "恢复",
+    "enable": "启用连续性",
+    "supersede": "替换当前指令",
+    "recover": "恢复结果"
   }
 }

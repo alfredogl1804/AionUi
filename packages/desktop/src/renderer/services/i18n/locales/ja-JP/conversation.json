@@ -782,5 +782,19 @@
     "progress": "{{completed}}/{{total}}",
     "expand": "プランを展開",
     "collapse": "プランを折りたたむ"
+  },
+  "continuity": {
+    "title": "タスクの継続",
+    "bound": "連携済み",
+    "native": "ネイティブセッション",
+    "results": "保存済みの応答 {{count}} 件",
+    "scope": "ユーザー送信前に復元します。実行は Teams が管理します。ACK は理解の証明ではありません。",
+    "partial": "部分的な文脈 — 欠落",
+    "direction": "目的 / 新しい指示",
+    "source": "保存したタスクを再開",
+    "resume": "再開",
+    "enable": "継続性を有効化",
+    "supersede": "現在の指示を置換",
+    "recover": "結果を復元"
   }
 }

@@ -36,6 +36,13 @@ const patch = {
 };
 
 describe('VelornWorkflowEqualizer', () => {
+  it('keeps the full specialist studio available without occupying a software chat by default', async () => {
+    render(<VelornWorkflowEqualizer />);
+    await waitFor(() => expect(getStatus).toHaveBeenCalled());
+    expect(screen.queryByTestId('velorn-workflow-equalizer')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByText('guid.velorn.title'));
+    expect(await screen.findByTestId('velorn-workflow-equalizer')).toBeInTheDocument();
+  });
   beforeEach(() => {
     getStatus.mockReset();
     preview.mockReset();
@@ -99,6 +106,7 @@ describe('VelornWorkflowEqualizer', () => {
 
   it('keeps execution disabled until a preview produces GRANT_REQUIRED', async () => {
     render(<VelornWorkflowEqualizer />);
+    fireEvent.click(screen.getByText('guid.velorn.title'));
 
     await waitFor(() => expect(getStatus).toHaveBeenCalledTimes(1));
     const authorize = screen.getByRole('button', { name: 'guid.velorn.authorize' });
@@ -127,6 +135,7 @@ describe('VelornWorkflowEqualizer', () => {
       },
     });
     render(<VelornWorkflowEqualizer />);
+    fireEvent.click(screen.getByText('guid.velorn.title'));
     await screen.findByText('GRANT_REQUIRED');
     expect(screen.getByRole('spinbutton', { name: 'Rotation' })).toHaveValue('7');
     expect(screen.getByRole('button', { name: 'guid.velorn.authorize' })).toBeDisabled();
@@ -135,6 +144,7 @@ describe('VelornWorkflowEqualizer', () => {
 
   it('invalidates authorization when controls change after preview', async () => {
     render(<VelornWorkflowEqualizer />);
+    fireEvent.click(screen.getByText('guid.velorn.title'));
     await waitFor(() => expect(getStatus).toHaveBeenCalledTimes(1));
     fireEvent.click(screen.getByRole('button', { name: 'guid.velorn.preview' }));
     await screen.findByText('GRANT_REQUIRED');
@@ -147,6 +157,7 @@ describe('VelornWorkflowEqualizer', () => {
 
   it('shows the authority receipt and specialist artifact after execution', async () => {
     render(<VelornWorkflowEqualizer />);
+    fireEvent.click(screen.getByText('guid.velorn.title'));
     await waitFor(() => expect(getStatus).toHaveBeenCalledTimes(1));
     fireEvent.click(screen.getByRole('button', { name: 'guid.velorn.preview' }));
     await screen.findByText('GRANT_REQUIRED');

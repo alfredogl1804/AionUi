@@ -782,5 +782,19 @@
     "progress": "{{completed}}/{{total}}",
     "expand": "Expand plan",
     "collapse": "Collapse plan"
+  },
+  "continuity": {
+    "title": "Task continuity",
+    "bound": "Bound",
+    "native": "Native session",
+    "results": "{{count}} saved responses",
+    "scope": "Recovery applies before human sends. Native Teams own execution. ACK is not proof of understanding.",
+    "partial": "Partial context — omissions",
+    "direction": "Objective / new current direction",
+    "source": "Resume a saved task",
+    "resume": "Resume",
+    "enable": "Enable continuity",
+    "supersede": "Replace current direction",
+    "recover": "Recover results"
   }
 }

@@ -8,12 +8,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createHash } from 'node:crypto';
 import { beforeEach, afterEach, describe, it, expect, vi } from 'vitest';
-import {
-  VelornGovernanceService,
-  unwrap,
-  contextOf,
-  parseEnvironmentFile,
-} from '@/process/services/velornGovernanceService';
+import { VelornGovernanceService, unwrap, contextOf, parseEnvironmentFile } from '@/process/services/velorn/service';
 import { catalog, resolveControls } from '@/process/services/velorn/catalog';
 import fixture from '../../../fixtures/velorn/native-catalog.json';
 import provenance from '../../../fixtures/velorn/PROVENANCE.json';

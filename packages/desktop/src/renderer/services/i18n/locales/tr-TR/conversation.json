@@ -784,5 +784,19 @@
     "progress": "{{completed}}/{{total}}",
     "expand": "Planı genişlet",
     "collapse": "Planı daralt"
+  },
+  "continuity": {
+    "title": "Görev sürekliliği",
+    "bound": "Bağlı",
+    "native": "Yerel oturum",
+    "results": "{{count}} kayıtlı yanıt",
+    "scope": "Kullanıcı göndermeden önce kurtarılır. Yürütme Teams içinde kalır. ACK anlama kanıtı değildir.",
+    "partial": "Kısmi bağlam — eksikler",
+    "direction": "Hedef / yeni talimat",
+    "source": "Kayıtlı görevi sürdür",
+    "resume": "Sürdür",
+    "enable": "Sürekliliği aç",
+    "supersede": "Geçerli talimatı değiştir",
+    "recover": "Sonuçları kurtar"
   }
 }

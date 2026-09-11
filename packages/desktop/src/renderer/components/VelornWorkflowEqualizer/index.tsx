@@ -147,7 +147,7 @@ const VelornWorkflowEqualizer: React.FC = () => {
   const ready = preview && previewKey === settingsKey && operation?.phase === 'GRANT_REQUIRED';
   const unresolved = operation && ['AUTHORIZED', 'PARTIAL', 'EXECUTING'].includes(operation.phase);
   return (
-    <AionCollapse className={styles.shell} defaultActiveKey='velorn' bordered={false}>
+    <AionCollapse className={styles.shell} defaultActiveKey={[]} bordered={false}>
       <AionCollapse.Item
         name='velorn'
         header={

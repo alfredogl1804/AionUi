@@ -12,6 +12,13 @@
  * native dialogs, auto-update, devtools, zoom, CDP, deep links) remain as IPC.
  */
 
+import type {
+  ContinuityLink,
+  ContinuityPreparation,
+  ContinuityReply,
+  ContinuitySend,
+  ContinuityStatus,
+} from '@/common/types/team/continuity';
 import type { IConfirmation } from '@/common/chat/chatLib';
 import type { AcpSlashCommandApiItem } from '@/common/chat/slash/types';
 import { bridge } from '@/common/platform/bridge';
@@ -274,6 +281,36 @@ export const auth = {
 // Conversation — REST + WS
 // ---------------------------------------------------------------------------
 
+// Recover only on native Desktop sends; AionCore remains the sole executor.
+function withContinuity<D, P extends { input: string }>(
+  native: { invoke: (p: P) => Promise<D>; provider: unknown },
+  target: (p: P) => ContinuitySend
+) {
+  return {
+    ...native,
+    async invoke(params: P): Promise<D> {
+      if (typeof window === 'undefined' || !window.__backendPort) return native.invoke(params);
+      const prepared = await continuity.prepare.invoke(target(params));
+      if (prepared.ok === false) throw new Error(prepared.error);
+      const result = await native.invoke({ ...params, input: prepared.data.content });
+      if (prepared.data.pointer) {
+        // A post-acceptance reporting error must NEVER invite a blind resend.
+        try {
+          await continuity.accepted.invoke({
+            preparation: prepared.data,
+            native: result as Record<string, unknown>,
+          });
+        } catch {
+          // IPC can disappear after native acceptance. Do not turn that into
+          // a failed-send retry; persisted native results recover on next open.
+          console.warn('CONTINUITY_REPORT_UNAVAILABLE_AFTER_NATIVE_ACCEPTANCE');
+        }
+      }
+      return result;
+    },
+  };
+}
+
 export const conversation = {
   create: withResponseMap(
     httpPost<TChatConversation, ICreateConversationParams>('/api/conversations', (p) => buildCreateConversationBody(p)),
@@ -372,18 +409,21 @@ export const conversation = {
     () => undefined
   ),
   activeCount: httpGet<{ count: number }>('/api/conversations/active-count'),
-  sendMessage: httpPost<ISendMessageResult, ISendMessageParams>(
-    (p) => `/api/conversations/${p.conversation_id}/messages`,
-    (p) => ({
-      content: p.input,
-      files: p.files,
-      // `@@` session references. Omitting this silently breaks the feature end
-      // to end: the backend's send-boundary resolver would always see an empty
-      // list and neither side would report an error.
-      sessions: p.sessions,
-      loading_id: p.loading_id,
-      inject_skills: p.inject_skills,
-    })
+  sendMessage: withContinuity(
+    httpPost<ISendMessageResult, ISendMessageParams>(
+      (p) => `/api/conversations/${p.conversation_id}/messages`,
+      (p) => ({
+        content: p.input,
+        files: p.files,
+        // `@@` session references. Omitting this silently breaks the feature end
+        // to end: the backend's send-boundary resolver would always see an empty
+        // list and neither side would report an error.
+        sessions: p.sessions,
+        loading_id: p.loading_id,
+        inject_skills: p.inject_skills,
+      })
+    ),
+    (p: ISendMessageParams) => ({ kind: 'conversation', conversation_id: p.conversation_id, input: p.input })
   ),
   getSlashCommands: httpGet<AcpSlashCommandApiItem[], { conversation_id: string }>(
     (p) => `/api/conversations/${p.conversation_id}/slash-commands`
@@ -739,6 +779,24 @@ export const application = {
 // ---------------------------------------------------------------------------
 // Velorn governance — stays IPC (caller credentials never enter renderer)
 // ---------------------------------------------------------------------------
+
+export const continuity = {
+  status: bridge.buildProvider<ContinuityReply<ContinuityStatus>, { conversation_id: string }>('continuity.status'),
+  link: bridge.buildProvider<ContinuityReply<ContinuityStatus>, ContinuityLink>('continuity.link'),
+  sources: bridge.buildProvider<ContinuityReply<Array<{ conversation_id: string; name: string }>>, void>(
+    'continuity.sources'
+  ),
+  instruct: bridge.buildProvider<ContinuityReply<ContinuityStatus>, { conversation_id: string; text: string }>(
+    'continuity.instruct'
+  ),
+  prepare: bridge.buildProvider<ContinuityReply<ContinuityPreparation>, ContinuitySend>('continuity.prepare'),
+  accepted: bridge.buildProvider<
+    ContinuityReply<void>,
+    { preparation: ContinuityPreparation; native: Record<string, unknown> }
+  >('continuity.accepted'),
+  collect: bridge.buildProvider<ContinuityReply<void>, { conversation_id: string }>('continuity.collect'),
+  changed: bridge.buildEmitter<{ conversation_id: string; error?: string }>('continuity.changed'),
+};
 
 export const velornGovernance = {
   getStatus: bridge.buildProvider<VelornGovernanceStatus, void>('velorn-governance.status'),
@@ -2353,28 +2411,37 @@ export const team = {
     if (p.kind) q.set('kind', p.kind);
     return `/api/teams/${p.team_id}/activity?${q.toString()}`;
   }),
-  sendMessage: httpPost<ITeamRunAck, ISendTeamMessageParams>(
-    (p) => `/api/teams/${p.team_id}/messages`,
-    (p) => ({
-      content: p.input,
-      files: p.files,
-    })
+  sendMessage: withContinuity(
+    httpPost<ITeamRunAck, ISendTeamMessageParams>(
+      (p) => `/api/teams/${p.team_id}/messages`,
+      (p) => ({
+        content: p.input,
+        files: p.files,
+      })
+    ),
+    (p: ISendTeamMessageParams) => ({ kind: 'team', team_id: p.team_id, input: p.input })
   ),
-  sendMessageToAgent: httpPost<ITeamRunAck, ISendTeamAgentMessageParams>(
-    (p) => `/api/teams/${p.team_id}/agents/${p.slot_id}/messages`,
-    (p) => ({
-      content: p.input,
-      files: p.files,
-    })
+  sendMessageToAgent: withContinuity(
+    httpPost<ITeamRunAck, ISendTeamAgentMessageParams>(
+      (p) => `/api/teams/${p.team_id}/agents/${p.slot_id}/messages`,
+      (p) => ({
+        content: p.input,
+        files: p.files,
+      })
+    ),
+    (p: ISendTeamAgentMessageParams) => ({ kind: 'agent', team_id: p.team_id, slot_id: p.slot_id, input: p.input })
   ),
-  interruptAgent: httpPost<ITeamInterruptAgentResponse, IInterruptTeamAgentParams>(
-    (p) => `/api/teams/${p.team_id}/agents/${p.slot_id}/interrupt`,
-    (p) => ({
-      message: p.input,
-      files: p.files,
-      reason: p.reason,
-      queued_policy: p.queued_policy ?? 'retain',
-    })
+  interruptAgent: withContinuity(
+    httpPost<ITeamInterruptAgentResponse, IInterruptTeamAgentParams>(
+      (p) => `/api/teams/${p.team_id}/agents/${p.slot_id}/interrupt`,
+      (p) => ({
+        message: p.input,
+        files: p.files,
+        reason: p.reason,
+        queued_policy: p.queued_policy ?? 'retain',
+      })
+    ),
+    (p: IInterruptTeamAgentParams) => ({ kind: 'interrupt', team_id: p.team_id, slot_id: p.slot_id, input: p.input })
   ),
   attachAgent: httpPost<void, { team_id: string; slot_id: string }>(
     (p) => `/api/teams/${p.team_id}/agents/${p.slot_id}/attach`
