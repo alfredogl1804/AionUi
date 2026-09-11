@@ -32,7 +32,8 @@ chat fails before dispatch if recovery, identity, or digest verification fails.
 3. Send normally. The existing native send receives the recovered causal pack.
 4. To replace a directive, use **Replace current direction**. The prior directive
    remains explicitly superseded, not silently deleted.
-5. In a fresh native conversation, select a bound conversation/Team by name in
+5. Use native **New chat** with an empty composer to open an idle conversation
+   without sending any first turn. In that fresh native conversation, select a bound conversation/Team by name in
    the continuity source picker. Resume it without copying task IDs or context.
 6. Reopen after restart: persisted native responses are collected without sending
    work again. **Recover results** also performs this read/deposit operation.

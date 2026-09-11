@@ -28,6 +28,7 @@ const sorted = (value: unknown): unknown =>
       : value;
 export function verifyPack(pack: JsonObject): void {
   const { schema: _schema, pack_digest, context_envelope: _envelope, ...payload } = pack;
+  if (_schema !== SCHEMA) throw new Error('CONTINUITY_SCHEMA_MISMATCH');
   if (pack.integrity !== 'VERIFIED' || hash(JSON.stringify(sorted(payload))) !== pack_digest)
     throw new Error('CONTINUITY_PACK_DIGEST_MISMATCH');
   const { envelope_sha256, ...envelope } = object(_envelope);
@@ -115,6 +116,10 @@ export class ContinuityService {
       actual.slot_id !== binding.slot_id ||
       actual.engine_id !== binding.engine_id ||
       actual.provider !== binding.provider ||
+      actual.provider_session_id !== binding.provider_session_id ||
+      object(pack.identity).team_id !== pointer.team_id ||
+      object(pack.identity).native_task_id !== pointer.native_task_id ||
+      object(pack.identity).native_task_kind !== pointer.native_task_kind ||
       object(pack.identity).origin_conversation_id !== pointer.origin_conversation_id
     ) {
       throw new Error('CONTINUITY_IDENTITY_MISMATCH');
@@ -232,6 +237,7 @@ export class ContinuityService {
       },
       `prepare:${preparationId}`
     );
+    if (prepared.preparation_id !== preparationId) throw new Error('CONTINUITY_PREPARATION_MISMATCH');
     const {
       preparation_id: _preparedId,
       context_items: _contextItems,

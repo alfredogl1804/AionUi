@@ -86,11 +86,11 @@ function fixture(options: { bound?: boolean; pack?: JsonObject; messages?: JsonO
   });
   const pack = options.pack ?? makePack();
   const authority = vi.fn(
-    async (_method: string, path: string): Promise<JsonObject> =>
+    async (_method: string, path: string, body?: unknown): Promise<JsonObject> =>
       path === '/tasks:bind'
         ? { continuity_id: 'aionui-test' }
         : path.endsWith(':prepare')
-          ? { ...pack, preparation_id: 'prep1' }
+          ? { ...pack, preparation_id: (body as JsonObject).preparation_id }
           : path.includes(':recover')
             ? pack
             : { ok: true }
@@ -133,6 +133,33 @@ describe('Native task continuity boundary', () => {
       'IDENTITY_MISMATCH'
     );
   });
+  it.each(['team_id', 'native_task_id', 'native_task_kind'])(
+    'rejects another native identity field: %s',
+    async (field) => {
+      const f = fixture({ pack: makePack({ identity: { ...pointer, [field]: 'other' } }) });
+      await expect(
+        f.service.prepare({ kind: 'conversation', conversation_id: 'c1', input: 'continue' })
+      ).rejects.toThrow('IDENTITY_MISMATCH');
+    }
+  );
+  it('rejects mismatched actual provider session rather than borrowing its context', async () => {
+    const f = fixture({ pack: makePack({ binding: { ...binding, provider_session_id: 'someone-else' } }) });
+    await expect(f.service.prepare({ kind: 'conversation', conversation_id: 'c1', input: 'continue' })).rejects.toThrow(
+      'IDENTITY_MISMATCH'
+    );
+  });
+  it('rejects a response for another immutable preparation', async () => {
+    const f = fixture();
+    const original = f.authority.getMockImplementation()!;
+    f.authority.mockImplementation((method, path, body) =>
+      path.endsWith(':prepare')
+        ? Promise.resolve({ ...makePack(), preparation_id: 'unrelated-preparation' })
+        : original(method, path, body)
+    );
+    await expect(f.service.prepare({ kind: 'conversation', conversation_id: 'c1', input: 'continue' })).rejects.toThrow(
+      'PREPARATION_MISMATCH'
+    );
+  });
   it('rejects corrupted recovered state', () => {
     const p = makePack();
     p.objective = 'corrupt';
@@ -152,7 +179,9 @@ describe('Native task continuity boundary', () => {
   it('rejects a malformed durable preparation before sending', async () => {
     const f = fixture();
     const a = f.authority.getMockImplementation()!;
-    f.authority.mockImplementation(async (m, p) => (p.endsWith(':prepare') ? { pack_digest: 'changed' } : a(m, p)));
+    f.authority.mockImplementation(async (m, p, b) =>
+      p.endsWith(':prepare') ? { pack_digest: 'changed', preparation_id: (b as JsonObject).preparation_id } : a(m, p, b)
+    );
     await expect(f.service.prepare({ kind: 'conversation', conversation_id: 'c1', input: 'write' })).rejects.toThrow(
       'IDENTITY_MISMATCH'
     );
