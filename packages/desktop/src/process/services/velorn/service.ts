@@ -15,7 +15,7 @@ import type {
   VelornGrantReceipt,
   VelornOperationState,
 } from '@/common/types/velornGovernance';
-import { catalog, record, resolveControls, rows } from './velorn/catalog';
+import { catalog, record, resolveControls, rows } from './catalog';
 
 const GATEWAY = 'http://127.0.0.1:4452';
 const AUTHORITY = 'http://127.0.0.1:4453';

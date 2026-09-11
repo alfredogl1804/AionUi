@@ -788,5 +788,19 @@
     "progress": "{{completed}}/{{total}}",
     "expand": "Expandir plano",
     "collapse": "Recolher plano"
+  },
+  "continuity": {
+    "title": "Continuidade da tarefa",
+    "bound": "Vinculada",
+    "native": "Sessão nativa",
+    "results": "{{count}} respostas salvas",
+    "scope": "Recuperação antes do envio humano. Teams mantém a execução. ACK não prova compreensão.",
+    "partial": "Contexto parcial — omissões",
+    "direction": "Objetivo / nova orientação",
+    "source": "Retomar tarefa salva",
+    "resume": "Retomar",
+    "enable": "Ativar continuidade",
+    "supersede": "Substituir orientação",
+    "recover": "Recuperar resultados"
   }
 }

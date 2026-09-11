@@ -1,3 +1,4 @@
+import ContinuityBar from '@renderer/pages/conversation/PlanBar/ContinuityBar';
 /**
  * @license
  * Copyright 2025 AionUi (aionui.com)
@@ -95,6 +96,7 @@ const AionrsChat: React.FC<{
             <MessageList className='flex-1' emptySlot={emptySlot} />
           </FlexFullContainer>
           {showVelornGovernance ? <VelornWorkflowEqualizer /> : null}
+          <ContinuityBar conversation_id={conversation_id} />
           <ConversationPlanBar conversation_id={conversation_id} />
           <AionrsSendBox
             conversation_id={conversation_id}

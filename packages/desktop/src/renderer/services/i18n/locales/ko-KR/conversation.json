@@ -782,5 +782,19 @@
     "progress": "{{completed}}/{{total}}",
     "expand": "계획 펼치기",
     "collapse": "계획 접기"
+  },
+  "continuity": {
+    "title": "작업 연속성",
+    "bound": "연결됨",
+    "native": "기본 세션",
+    "results": "저장된 응답 {{count}}개",
+    "scope": "사용자 전송 전에 복구합니다. 실행은 Teams가 담당합니다. ACK는 이해의 증거가 아닙니다.",
+    "partial": "부분 문맥 — 누락",
+    "direction": "목표 / 새 지침",
+    "source": "저장된 작업 재개",
+    "resume": "재개",
+    "enable": "연속성 활성화",
+    "supersede": "현재 지침 교체",
+    "recover": "결과 복구"
   }
 }

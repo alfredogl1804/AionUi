@@ -782,5 +782,19 @@
     "progress": "{{completed}}/{{total}}",
     "expand": "Développer le plan",
     "collapse": "Réduire le plan"
+  },
+  "continuity": {
+    "title": "Continuité de tâche",
+    "bound": "Liée",
+    "native": "Session native",
+    "results": "{{count}} réponses enregistrées",
+    "scope": "Récupération avant envoi humain. Teams garde l’exécution. Un ACK ne prouve pas la compréhension.",
+    "partial": "Contexte partiel — omissions",
+    "direction": "Objectif / nouvelle instruction",
+    "source": "Reprendre une tâche enregistrée",
+    "resume": "Reprendre",
+    "enable": "Activer la continuité",
+    "supersede": "Remplacer l’instruction",
+    "recover": "Récupérer les résultats"
   }
 }

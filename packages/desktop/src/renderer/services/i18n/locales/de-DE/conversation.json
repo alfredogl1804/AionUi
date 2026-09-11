@@ -783,5 +783,19 @@
     "progress": "{{completed}}/{{total}}",
     "expand": "Plan ausklappen",
     "collapse": "Plan einklappen"
+  },
+  "continuity": {
+    "title": "Aufgabenkontinuität",
+    "bound": "Verknüpft",
+    "native": "Native Sitzung",
+    "results": "{{count}} gespeicherte Antworten",
+    "scope": "Wiederherstellung vor Benutzernachrichten. Teams führt aus. ACK belegt kein Verständnis.",
+    "partial": "Teilkontext — Auslassungen",
+    "direction": "Ziel / neue Anweisung",
+    "source": "Gespeicherte Aufgabe fortsetzen",
+    "resume": "Fortsetzen",
+    "enable": "Kontinuität aktivieren",
+    "supersede": "Anweisung ersetzen",
+    "recover": "Ergebnisse wiederherstellen"
   }
 }
