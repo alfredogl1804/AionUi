@@ -75,7 +75,9 @@ function fixture(options: { bound?: boolean; pack?: JsonObject; messages?: JsonO
   };
   const core = vi.fn(async (method: string, path: string, body?: unknown): Promise<JsonObject> => {
     if (method === 'PATCH') {
-      Object.assign(c.extra as JsonObject, (body as { merge_extra: JsonObject }).merge_extra);
+      const patch = body as { extra?: JsonObject; merge_extra?: boolean };
+      if (patch.extra)
+        c.extra = patch.merge_extra === true ? { ...(c.extra as JsonObject), ...patch.extra } : patch.extra;
       return c;
     }
     if (path.includes('/messages?')) return { items: options.messages ?? [], has_more_before: false };
@@ -126,6 +128,21 @@ describe('Native task continuity boundary', () => {
     const f = fixture();
     await f.service.prepare({ kind: 'conversation', conversation_id: 'c1', input: 'continue' });
     expect(f.authority.mock.calls.some((c) => c[1].endsWith(':ack'))).toBe(false);
+  });
+  it('persists the pointer through native extra plus boolean merge flag', async () => {
+    const f = fixture({ bound: false });
+    await f.service.link({ conversation_id: 'c1', objective: 'Useful software' });
+    const call = f.core.mock.calls.find((c) => c[0] === 'PATCH');
+    expect(call?.[2]).toMatchObject({ extra: { monstruo_continuity: pointer }, merge_extra: true });
+    expect((f.c.extra as JsonObject).backend).toBe('codex');
+  });
+  it('does not claim bound when native backend acknowledges but drops the pointer', async () => {
+    const f = fixture({ bound: false });
+    const original = f.core.getMockImplementation()!;
+    f.core.mockImplementation((m, p, b) => (m === 'PATCH' ? Promise.resolve({}) : original(m, p, b)));
+    await expect(f.service.link({ conversation_id: 'c1', objective: 'Useful software' })).rejects.toThrow(
+      'POINTER_NOT_PERSISTED'
+    );
   });
   it('rejects a correct hash bound to another conversation', async () => {
     const f = fixture({ pack: makePack({ binding: { ...binding, conversation_id: 'other' } }) });

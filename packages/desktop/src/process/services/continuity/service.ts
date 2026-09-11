@@ -175,8 +175,11 @@ export class ContinuityService {
     );
     const pointer = { ...identity, continuity_id: id(result.continuity_id) } as ContinuityPointer;
     await this.core('PATCH', `/api/conversations/${enc(conversation.id)}`, {
-      merge_extra: { monstruo_continuity: pointer },
+      extra: { monstruo_continuity: pointer },
+      merge_extra: true,
     });
+    const stored = pointerOf(await this.conversation(input.conversation_id));
+    if (stored?.continuity_id !== pointer.continuity_id) throw new Error('CONTINUITY_NATIVE_POINTER_NOT_PERSISTED');
     return this.status(input.conversation_id);
   }
   async sources(): Promise<Array<{ conversation_id: string; name: string }>> {
