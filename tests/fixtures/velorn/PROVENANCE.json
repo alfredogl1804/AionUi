@@ -1,0 +1,6 @@
+{
+  "source": "Velorn list_velorn_workflows via 127.0.0.1:4452/mcp",
+  "observed_at": "2026-09-10",
+  "sha256": "3dd2c34b0deccb2e4f5a42dc7a7b35e1a004c3c7b8a7d35d57f19a1e664845eb",
+  "note": "Real read-only native catalog subset, no generated fixture claims"
+}

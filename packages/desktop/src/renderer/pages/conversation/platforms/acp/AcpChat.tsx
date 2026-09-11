@@ -27,6 +27,7 @@ import React from 'react';
 import AcpE2EStreamInjector from './AcpE2EStreamInjector';
 import AcpSendBox from './AcpSendBox';
 import { useAcpMessage } from './useAcpMessage';
+import VelornWorkflowEqualizer from '@/renderer/components/VelornWorkflowEqualizer';
 
 const AcpChat: React.FC<{
   conversation_id: string;
@@ -94,6 +95,7 @@ const AcpChat: React.FC<{
             <MessageList className='flex-1' emptySlot={emptySlot} />
           </FlexFullContainer>
           <AcpE2EStreamInjector conversationId={conversation_id} />
+          <VelornWorkflowEqualizer />
           <ConversationPlanBar conversation_id={conversation_id} />
           {!hideSendBox && (
             <AcpSendBox

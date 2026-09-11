@@ -1,0 +1,336 @@
+{
+  "calibrationProfiles": [
+    {
+      "descriptor": {
+        "id": "wan-animate2-identity-motion-v1",
+        "version": 1,
+        "schema": "velorn.calibration-profile/v1",
+        "templateNames": ["video_wan_animate2"],
+        "title": "Wan Animate 2 — Identity/Motion Equalizer",
+        "lifecycle": "champion",
+        "evidenceLevel": "PRODUCT_PROVEN",
+        "routeEvidenceLevel": "PRODUCT_PROVEN",
+        "evidence": {
+          "artifact": "WAN-ANIMATE-PRODUCT-01",
+          "summary": "Three intentional variants were compared in Velorn; V2 won. Full-frame output was rejected for background/halo drift and retained only as a reversible face-only identity source.",
+          "observedCalibration": {
+            "winner": {
+              "referenceImageStrength": 1.35,
+              "poseStrength": 1.25
+            },
+            "highMotionTradeoff": "pose_strength 1.45 increased motion but introduced morphing.",
+            "highIdentityTradeoff": "reference_image_strength 1.5 increased rigidity and flicker."
+          }
+        },
+        "controlIds": ["identityFidelity", "motionAdherence", "choreographyLock"],
+        "requiredNodeContracts": [
+          {
+            "classType": "WanAnimate2ToVideo",
+            "inputs": [
+              "width",
+              "height",
+              "length",
+              "video_frame_offset",
+              "pose_strength",
+              "pose_start_percent",
+              "pose_end_percent",
+              "reference_image_strength"
+            ]
+          },
+          {
+            "classType": "CreateVideo",
+            "inputs": ["fps"]
+          }
+        ]
+      },
+      "profile": {
+        "schema": "velorn.calibration-profile/v1",
+        "id": "wan-animate2-identity-motion-v1",
+        "version": 1,
+        "title": "Wan Animate 2 — Identity/Motion Equalizer",
+        "lifecycle": "champion",
+        "evidenceLevel": "PRODUCT_PROVEN",
+        "routeEvidenceLevel": "PRODUCT_PROVEN",
+        "templateName": "video_wan_animate2",
+        "preset": {
+          "id": "product-v2-balanced-face-source",
+          "label": "Product-proven V2 balance",
+          "evidence": "WAN-ANIMATE-PRODUCT-01 — variant V2 selected; face-only reversible finishing preserved body, environment, and original audio."
+        },
+        "controls": [
+          {
+            "id": "identityFidelity",
+            "label": "Identity fidelity",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "value": 96,
+            "mapsTo": "WanAnimate2ToVideo.reference_image_strength",
+            "technicalValue": 1.35,
+            "observedRange": {
+              "recommended": [80, 100],
+              "winner": 96
+            }
+          },
+          {
+            "id": "motionAdherence",
+            "label": "Motion adherence",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "value": 75,
+            "mapsTo": "WanAnimate2ToVideo.pose_strength",
+            "technicalValue": 1.25,
+            "observedRange": {
+              "recommended": [65, 80],
+              "winner": 75
+            }
+          },
+          {
+            "id": "choreographyLock",
+            "label": "Choreography lock",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "value": 100,
+            "mapsTo": "WanAnimate2ToVideo.pose_end_percent",
+            "technicalValue": 1,
+            "observedRange": {
+              "recommended": [95, 100],
+              "winner": 100
+            }
+          }
+        ],
+        "technicalParameters": {
+          "width": 480,
+          "height": 848,
+          "length": 81,
+          "fps": 24,
+          "videoFrameOffset": 160,
+          "poseStartPercent": 0,
+          "poseEndPercent": 1,
+          "poseStrength": 1.25,
+          "referenceImageStrength": 1.35,
+          "seed": null
+        },
+        "locks": {
+          "aspectRatio": true,
+          "dimensionsMultipleOf": 16,
+          "wanFrameRule": "1 + 4n",
+          "poseStartPercent": 0,
+          "videoFrameOffset": 160,
+          "nonDestructiveOutput": true,
+          "originalTimelineMediaPreserved": true,
+          "backgroundPreservationClaim": false
+        },
+        "checkpoint": {
+          "requiredBeforeApply": true,
+          "tool": "create_project_checkpoint",
+          "label": "Before wan-animate2-identity-motion-v1"
+        },
+        "undo": {
+          "strategy": "restore_project_checkpoint",
+          "suggestedCall": {
+            "tool": "restore_project_checkpoint",
+            "arguments": {
+              "previewOnly": true,
+              "saveProject": false
+            }
+          }
+        },
+        "estimatedCost": {
+          "currency": "USD",
+          "hardwareClass": "RTX PRO 6000 equivalent",
+          "billingBasis": "runtime-dependent",
+          "estimatedRange": [0.2, 1],
+          "requiresExplicitAuthorization": true,
+          "note": "Estimate only. Actual GPU/provider price and runtime must be recorded in the receipt."
+        },
+        "evidence": {
+          "artifact": "WAN-ANIMATE-PRODUCT-01",
+          "result": "V2 selected after three intentional variants. Full-frame output was rejected for background/halo drift; approved usage was a reversible face-only identity source.",
+          "observedCalibration": {
+            "winner": {
+              "referenceImageStrength": 1.35,
+              "poseStrength": 1.25
+            },
+            "highMotionTradeoff": "pose_strength 1.45 increased movement but introduced morphing.",
+            "highIdentityTradeoff": "reference_image_strength 1.5 increased rigidity and flicker."
+          }
+        },
+        "retake": {
+          "mode": "review-lane-first",
+          "targetClipId": null,
+          "timelineRange": {
+            "startTimeSeconds": null,
+            "durationSeconds": 3.375
+          },
+          "identitySourceClipId": null,
+          "identitySourceFrameTimeSeconds": null,
+          "motionSourceAssetId": null,
+          "motionFrameOffset": 160,
+          "outputPlacement": {
+            "tool": "add_asset_to_timeline",
+            "mode": "review_lane",
+            "destructiveReplacement": false
+          }
+        },
+        "requiredInputs": [
+          {
+            "role": "identity_reference",
+            "field": "primary asset",
+            "type": "image or timeline video frame"
+          },
+          {
+            "role": "motion_reference",
+            "field": "templateInput1",
+            "type": "video"
+          },
+          {
+            "role": "prompt",
+            "field": "prompt",
+            "type": "text"
+          }
+        ],
+        "calibrationPatch": {
+          "schema": "velorn.calibration-patch/v1",
+          "profileId": "wan-animate2-identity-motion-v1",
+          "profileVersion": 1,
+          "templateName": "video_wan_animate2",
+          "workflowSha256": "772a7dfce6d5b61b8f838ec0609211a0c9b1c04a7c64e26d05f0852f147edac7",
+          "controls": {
+            "identityFidelity": 96,
+            "motionAdherence": 75,
+            "choreographyLock": 100
+          },
+          "operations": [
+            {
+              "target": {
+                "classType": "WanAnimate2ToVideo"
+              },
+              "inputs": {
+                "width": 480,
+                "height": 848,
+                "length": 81,
+                "video_frame_offset": 160,
+                "pose_strength": 1.25,
+                "pose_start_percent": 0,
+                "pose_end_percent": 1,
+                "reference_image_strength": 1.35
+              }
+            },
+            {
+              "target": {
+                "classType": "CreateVideo"
+              },
+              "inputs": {
+                "fps": 24
+              }
+            }
+          ]
+        }
+      },
+      "bridgeProfile": {
+        "schema": "monstruo-calibration-profile/v1",
+        "profile_id": "wan-animate2-identity-motion-v1",
+        "version": "1",
+        "specialist_id": "velorn",
+        "workflow_id": "video_wan_animate2",
+        "workflow_version": "sha256:772a7dfce6d5b61b8f838ec0609211a0c9b1c04a7c64e26d05f0852f147edac7",
+        "preset": {
+          "id": "product-v2-balanced-face-source",
+          "label": "Product-proven V2 balance",
+          "evidence": "WAN-ANIMATE-PRODUCT-01 — variant V2 selected; face-only reversible finishing preserved body, environment, and original audio."
+        },
+        "controls": [
+          {
+            "control_id": "identity-fidelity",
+            "label": "Identity fidelity",
+            "axis": "identityFidelity",
+            "target_path": "WanAnimate2ToVideo.reference_image_strength",
+            "semantic_min": -96,
+            "semantic_max": 4,
+            "technical_min": 1.05,
+            "technical_max": 1.3625,
+            "default_value": 1.35,
+            "step": 1,
+            "unit": "",
+            "confidence": 1,
+            "evidence_refs": ["WAN-ANIMATE-PRODUCT-01"]
+          },
+          {
+            "control_id": "motion-adherence",
+            "label": "Motion adherence",
+            "axis": "motionAdherence",
+            "target_path": "WanAnimate2ToVideo.pose_strength",
+            "semantic_min": -75,
+            "semantic_max": 25,
+            "technical_min": 0.5,
+            "technical_max": 1.5,
+            "default_value": 1.25,
+            "step": 1,
+            "unit": "",
+            "confidence": 1,
+            "evidence_refs": ["WAN-ANIMATE-PRODUCT-01"]
+          },
+          {
+            "control_id": "choreography-lock",
+            "label": "Choreography lock",
+            "axis": "choreographyLock",
+            "target_path": "WanAnimate2ToVideo.pose_end_percent",
+            "semantic_min": -100,
+            "semantic_max": 0,
+            "technical_min": 0.8,
+            "technical_max": 1,
+            "default_value": 1,
+            "step": 1,
+            "unit": "",
+            "confidence": 1,
+            "evidence_refs": ["WAN-ANIMATE-PRODUCT-01"]
+          }
+        ],
+        "locks": [
+          "WanAnimate2ToVideo.video_frame_offset",
+          "WanAnimate2ToVideo.pose_start_percent",
+          "workflow.dimensionsMultipleOf",
+          "output.nonDestructive",
+          "timeline.originalMediaPreserved"
+        ],
+        "uncertainty": {
+          "scope": "Face-only reversible identity source; full-frame background/halo preservation is not claimed.",
+          "bindingStatus": "Descriptor is bridge-compatible; mutating execution still requires a configured specialist adapter and scoped Kernel grant.",
+          "choreographyMapping": "The neutral bridge exposes the technical pose_end_percent range; the native Velorn control remains the authoritative piecewise mapping."
+        },
+        "provenance": [
+          {
+            "evidence_id": "WAN-ANIMATE-PRODUCT-01",
+            "ref": "velorn://evidence/WAN-ANIMATE-PRODUCT-01",
+            "verdict": "PASS"
+          }
+        ]
+      }
+    }
+  ],
+  "workflows": [
+    {
+      "id": "multi-angles",
+      "label": "Multi Angles",
+      "category": "image",
+      "runtime": "local",
+      "needsImage": true,
+      "description": "",
+      "file": "1_click_multiple_angles.json",
+      "source": "file-scan"
+    },
+    {
+      "id": "multi-angles-scene",
+      "label": "Multi Angles Scene",
+      "category": "image",
+      "runtime": "local",
+      "needsImage": true,
+      "description": "",
+      "file": "1_click_multiple_scene_angles-v1.0.json",
+      "source": "file-scan"
+    }
+  ]
+}

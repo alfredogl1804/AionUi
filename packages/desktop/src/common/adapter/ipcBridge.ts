@@ -97,6 +97,12 @@ import type {
 import type { AgentMetadata } from '@/renderer/utils/model/agentTypes';
 import type { Theme } from '@/common/theme/types';
 import type { AttachFolderRequest, ProjectDetailDto, ProjectEntryDto } from '@/common/types/project';
+import type {
+  VelornCalibrationInput,
+  VelornCalibrationPreview,
+  VelornGovernanceStatus,
+  VelornOperationState,
+} from '@/common/types/velornGovernance';
 import type { ChatFileRef, ContentEncoding } from '@/common/types/chatFile';
 import type { ProtocolDetectionRequest, ProtocolDetectionResponse } from '../utils/protocolDetector';
 import {
@@ -728,6 +734,17 @@ export const application = {
     'app.log-stream'
   ),
   devToolsStateChanged: bridge.buildEmitter<{ isOpen: boolean }>('app.devtools-state-changed'),
+};
+
+// ---------------------------------------------------------------------------
+// Velorn governance — stays IPC (caller credentials never enter renderer)
+// ---------------------------------------------------------------------------
+
+export const velornGovernance = {
+  getStatus: bridge.buildProvider<VelornGovernanceStatus, void>('velorn-governance.status'),
+  preview: bridge.buildProvider<VelornCalibrationPreview, VelornCalibrationInput>('velorn-governance.preview'),
+  execute: bridge.buildProvider<VelornOperationState, VelornCalibrationInput>('velorn-governance.execute'),
+  revert: bridge.buildProvider<VelornOperationState, void>('velorn-governance.revert'),
 };
 
 // ---------------------------------------------------------------------------

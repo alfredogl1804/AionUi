@@ -12,6 +12,7 @@ import ConversationPlanBar from '@renderer/pages/conversation/PlanBar/Conversati
 import { usePlanRecovery } from '@renderer/pages/conversation/PlanBar/usePlanRecovery';
 import { CHAT_SURFACE_CONTAINER_CLASS } from '@/renderer/pages/conversation/utils/chatSurfaceWidth';
 import FlexFullContainer from '@renderer/components/layout/FlexFullContainer';
+import VelornWorkflowEqualizer from '@/renderer/components/VelornWorkflowEqualizer';
 import MessageList from '@renderer/pages/conversation/Messages/MessageList';
 import { ConversationArtifactProvider } from '@renderer/pages/conversation/Messages/artifacts';
 import {
@@ -42,6 +43,7 @@ const AionrsChat: React.FC<{
   teamRuntime?: TeamSendBoxRuntime;
   assistantId?: string;
   forkCapability?: { at_turn: boolean };
+  showVelornGovernance?: boolean;
 }> = ({
   conversation_id,
   workspace,
@@ -57,6 +59,7 @@ const AionrsChat: React.FC<{
   teamRuntime,
   assistantId,
   forkCapability,
+  showVelornGovernance,
 }) => {
   useMessageLstCache(conversation_id);
   usePendingConfirmationsRecovery(conversation_id);
@@ -91,6 +94,7 @@ const AionrsChat: React.FC<{
           <FlexFullContainer>
             <MessageList className='flex-1' emptySlot={emptySlot} />
           </FlexFullContainer>
+          {showVelornGovernance ? <VelornWorkflowEqualizer /> : null}
           <ConversationPlanBar conversation_id={conversation_id} />
           <AionrsSendBox
             conversation_id={conversation_id}
