@@ -121,11 +121,23 @@ export class VelornGovernanceService {
   private readonly fetcher: typeof fetch;
   private readonly home: string;
   private readonly statePath: string;
+  private readonly postconditionTimeoutMs: number;
+  private readonly postconditionPollMs: number;
   private busy = false;
-  constructor(options: { fetch?: typeof fetch; homeDirectory?: string; statePath?: string } = {}) {
+  constructor(
+    options: {
+      fetch?: typeof fetch;
+      homeDirectory?: string;
+      statePath?: string;
+      postconditionTimeoutMs?: number;
+      postconditionPollMs?: number;
+    } = {}
+  ) {
     this.fetcher = options.fetch ?? fetch;
     this.home = options.homeDirectory ?? homedir();
     this.statePath = options.statePath ?? join(this.home, 'Library/Application Support/AionUi/velorn-governance.json');
+    this.postconditionTimeoutMs = options.postconditionTimeoutMs ?? 8000;
+    this.postconditionPollMs = options.postconditionPollMs ?? 200;
   }
   private async exclusive<T>(operation: () => Promise<T>): Promise<T> {
     if (this.busy) throw new Error('VELORN_OPERATION_BUSY');
@@ -179,6 +191,15 @@ export class VelornGovernanceService {
       this.mcp('get_timeline', { includeClips: true, includeTransitions: true, limit: 10000 }),
     ]);
     return contextOf(p, t);
+  }
+  private async waitForContext(
+    predicate: (context: VelornContext) => boolean,
+    deadline = Date.now() + this.postconditionTimeoutMs
+  ): Promise<VelornContext> {
+    const observed = await this.context();
+    if (predicate(observed) || Date.now() >= deadline) return observed;
+    await new Promise((resolve) => setTimeout(resolve, this.postconditionPollMs));
+    return this.waitForContext(predicate, deadline);
   }
   async status(): Promise<VelornGovernanceStatus> {
     const base: VelornGovernanceStatus = {
@@ -373,7 +394,16 @@ export class VelornGovernanceService {
         const executionReceipt = await this.grant(prepared, 'apply', prepared.tool, prepared.arguments, 'execute');
         state = { ...state, executionReceipt };
         await this.writeState(state);
-        const after = await this.context();
+        const after = await this.waitForContext((observed) => {
+          if (
+            observed.projectPath !== prepared.context.projectPath ||
+            observed.timelineId !== prepared.context.timelineId
+          )
+            return true;
+          return prepared.tool === 'add_timeline_markers'
+            ? observed.markerCount === prepared.context.markerCount + 1
+            : observed.digest !== prepared.context.digest;
+        });
         if (after.projectPath !== prepared.context.projectPath || after.timelineId !== prepared.context.timelineId)
           throw new Error('VELORN_PROJECT_CHANGED');
         state = { ...state, after };
@@ -436,7 +466,12 @@ export class VelornGovernanceService {
         );
         state = { ...state, reversalReceipt };
         await this.writeState(state);
-        const restored = await this.context();
+        const restored = await this.waitForContext(
+          (observed) =>
+            observed.projectPath !== previous.prepared!.context.projectPath ||
+            observed.timelineId !== previous.prepared!.context.timelineId ||
+            observed.digest === previous.prepared!.context.digest
+        );
         state = { ...state, restoredContext: restored };
         await this.writeState(state);
         if (restored.digest !== previous.prepared.context.digest)
