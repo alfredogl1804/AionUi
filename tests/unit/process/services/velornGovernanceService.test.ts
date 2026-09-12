@@ -31,6 +31,9 @@ describe('native calibration / guarded execution', () => {
   let authority: boolean;
   let failStage: string;
   let calls: string[];
+  let staleTimelineReads: number[];
+  let applyStaleReads: number;
+  let undoStaleReads: number;
   beforeEach(async () => {
     home = await mkdtemp(join(tmpdir(), 'velorn-'));
     path = join(home, 'state.json');
@@ -42,6 +45,9 @@ describe('native calibration / guarded execution', () => {
     authority = true;
     failStage = '';
     calls = [];
+    staleTimelineReads = [];
+    applyStaleReads = 0;
+    undoStaleReads = 0;
     const fetcher = vi.fn(async (url: string | URL | Request, init?: RequestInit) => {
       const endpoint = String(url);
       if (endpoint === 'http://127.0.0.1:4453/health')
@@ -59,8 +65,16 @@ describe('native calibration / guarded execution', () => {
         const stage = String(body.request_id).split(':').at(-1)!;
         calls.push(stage);
         if (stage === failStage) return response({ error: 'denied' }, 403);
-        if (stage === 'apply') markers++;
-        if (stage === 'undo') markers--;
+        if (stage === 'apply') {
+          const before = markers;
+          markers++;
+          staleTimelineReads.push(...Array.from({ length: applyStaleReads }, () => before));
+        }
+        if (stage === 'undo') {
+          const before = markers;
+          markers--;
+          staleTimelineReads.push(...Array.from({ length: undoStaleReads }, () => before));
+        }
         return response({
           request_id: body.request_id,
           status: 'SUCCEEDED',
@@ -76,15 +90,17 @@ describe('native calibration / guarded execution', () => {
       const args = body.params.arguments;
       let data: unknown = { success: true, previewOnly: true };
       if (tool === 'get_project') data = { project: { path: projectPath, name: 'Isolated' } };
-      if (tool === 'get_timeline')
+      if (tool === 'get_timeline') {
+        const projectedMarkers = staleTimelineReads.shift() ?? markers;
         data = {
           id: 'timeline-one',
-          modified: 'revision-' + markers,
-          markerCount: markers,
+          modified: 'revision-' + projectedMarkers,
+          markerCount: projectedMarkers,
           clips: [],
           tracks: [],
           clipLimitApplied: false,
         };
+      }
       if (tool === 'get_assets') data = { assets: [] };
       if (tool === 'list_velorn_workflows') data = { ...fixture, count: 42 };
       if (tool === 'queue_timeline_template_generation')
@@ -177,6 +193,18 @@ describe('native calibration / guarded execution', () => {
       fetch: vi.fn().mockRejectedValue(new Error('OFFLINE')),
     });
     expect((await recovered.status()).restored?.reversalReceipt?.ledger_entry_id).toBe('pdl-undo');
+  });
+  it('waits for delayed native projection after apply and undo without repeating either effect', async () => {
+    applyStaleReads = 2;
+    undoStaleReads = 2;
+    const p = await service.preview(input);
+    const executed = await service.execute({ ...input, runId: p.runId });
+    expect(executed.phase).toBe('AUTHORIZED');
+    expect(executed.after?.markerCount).toBe(1);
+    const reverted = await service.revert();
+    expect(reverted.phase).toBe('REVERTED');
+    expect(reverted.restoredContext?.markerCount).toBe(0);
+    expect(calls).toEqual(['checkpoint', 'apply', 'undo']);
   });
   it('does not dispatch if the project changed after preview', async () => {
     const p = await service.preview(input);
